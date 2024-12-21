@@ -15,3 +15,20 @@ class FocusSerializer(serializers.Serializer):
 
     def get_username(self, data):
         return data.user.username
+
+
+class MyFocusRankSerializer(serializers.ModelSerializer):
+    rank = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Focus
+        fields = ('in_time', 'rank')
+
+    def get_rank(self, obj):
+        request = self.context.get('request')
+        date = request.GET.get('date')
+        all_focus = Focus.objects.filter(date=date) \
+            .order_by('-date') \
+            .select_related('user')
+
+        return list(all_focus).index(obj) + 1

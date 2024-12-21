@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from core.authentication import CsrfExemptSessionAuthentication
 from focus.models import Focus
-from focus.serializers import FocusSerializer
+from focus.serializers import FocusSerializer, MyFocusRankSerializer
 
 
 class FocusView(APIView):
@@ -40,23 +40,12 @@ class MyFocusRankView(APIView):
 
     def get(self, request: Request) -> Response:
         date = request.GET.get('date')
-        all_focus = Focus.objects.filter(date=date)\
-            .order_by('-date')\
-            .select_related('user')
-
         user_focus = Focus.objects.filter(
             date=date,
             user=request.user
-        )\
-            .order_by('-date')\
-            .select_related('user')\
+        ) \
+            .order_by('-date') \
+            .select_related('user') \
             .first()
-
-        index = list(all_focus).index(user_focus) + 1
-
-        data = {
-            'rank': index,
-            'in_time': user_focus.in_time
-        }
-
-        return Response(data, status=status.HTTP_200_OK)
+        serializer = MyFocusRankSerializer(user_focus, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

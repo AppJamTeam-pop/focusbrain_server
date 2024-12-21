@@ -3,13 +3,15 @@ from rest_framework import serializers
 from focus.models import Focus
 
 
-class FocusSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(format="%Y-%m-%d")
+class FocusSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    date = serializers.DateField('%Y-%m-%d')
+    in_time = serializers.FloatField()
+    out_count = serializers.IntegerField()
+    username = serializers.SerializerMethodField(read_only=True)
 
-    class Meta:
-        model = Focus
-        fields = '__all__'
+    def create(self, validated_data):
+        return Focus.objects.create(**validated_data)
 
-        extra_kwargs = {
-            'user': {'required': False},
-        }
+    def get_username(self, data):
+        return data.user.username

@@ -7,11 +7,11 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "80:80"
     command: [
       "/bin/sh", "-c",
       "poetry run python src/manage.py migrate && 
-      poetry run gunicorn --chdir src --bind 0.0.0.0:8000 core.wsgi:application"
+      poetry run gunicorn --chdir src --bind 0.0.0.0:80 core.wsgi:application"
     ]
     depends_on:
       - postgres

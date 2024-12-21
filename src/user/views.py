@@ -1,46 +1,19 @@
-from django.contrib.auth import authenticate, login, logout
-from django.db.transaction import atomic
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.authentication import CsrfExemptSessionAuthentication
-from user.exception import UserException
-from user.serializers import UserSerializer, SigninSerializer
+from user.models import User
+from user.serializers import MyUserInfoSerializer
 
 
-class SigninView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [AllowAny]
-
-    @atomic
-    def post(self, request: Request) -> Response:
-        serializer = SigninSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if not (user := authenticate(request, **serializer.validated_data)):
-            raise UserException.UserNotFoundException
-        login(request, user)
-        return Response(status=status.HTTP_200_OK)
-
-
-class SignupView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [AllowAny]
-
-    @atomic
-    def post(self, request: Request) -> Response:
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
-
-
-class LogoutView(APIView):
+class MyInfoView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request: Request) -> Response:
-        logout(request)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request: Request) -> Response:
+        myinfo = User.objects.filter(id=request.user.id).first()
+        serializer = MyUserInfoSerializer(myinfo)
+        return Response(serializer.data, status=status.HTTP_200_OK)

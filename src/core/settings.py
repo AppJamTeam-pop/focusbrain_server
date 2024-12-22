@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Apps
     'user',
     'focus',
+    'authentication'
 ]
 
 MIDDLEWARE = [
